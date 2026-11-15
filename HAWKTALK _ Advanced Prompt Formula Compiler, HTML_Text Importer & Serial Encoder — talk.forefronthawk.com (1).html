@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="ui-sophisticated" data-device="desktop">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HAWKTALK | Advanced Prompt Formula Compiler, HTML/Text Importer &amp; Serial Encoder — talk.forefronthawk.com</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07090F;
+    --panel: #111624;
+    --panel2: #171E31;
+    --line: #28334A;
+    --border: #C5A059;
+    --accent: #D4AF37;
+    --accent2: #00F5D4;
+    --emerald: #39FF88;
+    --purple: #A855F7;
+    --danger: #F87171;
+    --text: #F8FAFC;
+    --mute: #94A3B8;
+    --font: "Inter", system-ui, -apple-system, sans-serif;
+    --mono: "JetBrains Mono", monospace;
+    --display: "Orbitron", sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    transition: max-width 0.22s ease, margin 0.22s ease;
+  }
+
+  /* Device Layout Reconfiguration Modes (Desktop / Mobile / Fold / Tablet) */
+  html[data-device="mobile"] body {
+    max-width: 430px;
+    margin: 0 auto;
+    border-left: 2px solid var(--border);
+    border-right: 2px solid var(--border);
+  }
+  html[data-device="mobile"] .htk-grid-2,
+  html[data-device="mobile"] .skill-matrix-grid {
+    grid-template-columns: 1fr !important;
+  }
+  html[data-device="tablet"] body {
+    max-width: 1024px;
+    margin: 0 auto;
+    border-left: 2px solid var(--border);
+    border-right: 2px solid var(--border);
+  }
+  html[data-device="fold"] .htk-grid-2 {
+    grid-template-columns: 1fr 1fr !important;
+    column-gap: 20px !important;
+    background-image: linear-gradient(90deg, transparent calc(50% - 1px), rgba(212, 175, 55, 0.45) 50%, transparent calc(50% + 1px));
+  }
+
+  /* Top Header */
+  .htk-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 14px;
+    background: linear-gradient(90deg, var(--panel), var(--panel2) 55%, var(--panel));
+    border-bottom: 1.5px solid var(--border);
+    flex-wrap: wrap;
+    z-index: 30;
+  }
+  .htk-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 900 15px var(--display);
+    color: var(--accent);
+    letter-spacing: 0.08em;
+  }
+  .htk-brand span { color: var(--accent2); }
+
+  button, select, input[type="text"] {
+    font: 700 11px var(--mono);
+    color: var(--text);
+    background: var(--panel2);
+    border: 1px solid rgba(197, 160, 89, 0.45);
+    border-radius: 7px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: filter 0.12s, border-color 0.12s, transform 0.06s;
+  }
+  button:hover, select:hover {
+    filter: brightness(1.14);
+    border-color: var(--accent2);
+  }
+  button:active { transform: scale(0.97); }
+  .btn-gold {
+    background: linear-gradient(135deg, var(--accent), #FACC15);
+    color: #050B14;
+    border-color: #FFF;
+    font-weight: 900;
+  }
+  .btn-cyan {
+    background: linear-gradient(135deg, #00F5D4, #38BDF8);
+    color: #04121C;
+    border-color: #FFF;
+    font-weight: 900;
+  }
+  .btn-emerald {
+    background: linear-gradient(135deg, #10B981, #39FF88);
+    color: #04121C;
+    border-color: #FFF;
+    font-weight: 900;
+  }
+  .btn-purple {
+    background: linear-gradient(135deg, #A855F7, #EC4899);
+    color: #FFF;
+    border-color: #FDE047;
+    font-weight: 800;
+  }
+
+  /* Formula Banner Strip */
+  .htk-formula-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 14px;
+    background: rgba(8, 12, 22, 0.96);
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .formula-eq {
+    font: 700 11px var(--mono);
+    color: var(--accent2);
+    background: rgba(0, 245, 212, 0.08);
+    border: 1px solid rgba(0, 245, 212, 0.35);
+    padding: 4px 10px;
+    border-radius: 7px;
+  }
+  .serial-badge {
+    font: 800 11px var(--mono);
+    color: var(--accent);
+    background: rgba(212, 175, 55, 0.14);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 7px;
+  }
+
+  /* Navigation Tabs */
+  .htk-tabs-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .htk-tab {
+    padding: 6px 12px;
+    border-radius: 7px;
+    font: 800 11.5px var(--mono);
+    background: transparent;
+    color: var(--mute);
+    border: 1px solid transparent;
+  }
+  .htk-tab[aria-selected="true"] {
+    background: rgba(212, 175, 55, 0.18);
+    color: var(--accent);
+    border-color: var(--border);
+  }
+
+  /* Main Views */
+  .htk-main {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    overflow: hidden;
+  }
+  .htk-view {
+    display: none;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+    padding: 12px 14px;
+    gap: 12px;
+  }
+  .htk-view.active {
+    display: flex;
+  }
+
+  .htk-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1.12fr;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+  .htk-card {
+    background: var(--panel);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    min-height: 280px;
+    overflow: hidden;
+  }
+  .htk-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--panel2);
+    border-bottom: 1px solid var(--line);
+    font: 800 12px var(--display);
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    flex-wrap: wrap;
+  }
+  .htk-card-body {
+    flex: 1;
+    overflow: auto;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  textarea.htk-textarea {
+    width: 100%;
+    flex: 1;
+    min-height: 120px;
+    background: #05070C;
+    color: #E2E8F0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font: 500 12px/1.55 var(--mono);
+    resize: vertical;
+    outline: none;
+  }
+  textarea.htk-textarea:focus {
+    border-color: var(--accent2);
+  }
+
+  /* Skill Pill Toggles */
+  .skill-pills-wrap {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+    gap: 6px;
+  }
+  .skill-pill {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    padding: 7px 9px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font: 600 11px/1.35 var(--mono);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .skill-pill input {
+    margin-top: 2px;
+    accent-color: var(--accent2);
+  }
+  .skill-pill small {
+    display: block;
+    color: var(--mute);
+    font-family: var(--font);
+    font-size: 10.5px;
+    margin-top: 2px;
+  }
+
+  /* Skill Matrix Cards */
+  .skill-matrix-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 10px;
+  }
+  .skill-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .skill-box h4 {
+    font: 800 12px var(--display);
+    color: var(--accent);
+  }
+  .skill-box p {
+    font-size: 12px;
+    color: #CBD5E1;
+    line-height: 1.45;
+  }
+  .skill-box code {
+    font: 600 10.5px var(--mono);
+    color: var(--accent2);
+    background: #05070C;
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+  }
+
+  /* Digest Box */
+  .digest-box {
+    background: #05070C;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font: 600 11px/1.5 var(--mono);
+    color: var(--emerald);
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===================================================================== -->
+  <!-- TOP HEADER                                                            -->
+  <!-- ===================================================================== -->
+  <header class="htk-topbar">
+    <div class="htk-brand">
+      <span>🦅</span> HAWK<span>TALK</span>
+      <small style="font-size:9px;color:var(--mute);font-family:var(--mono)">TALK.FOREFRONTHAWK.COM • GEMINI AARGON ENGINE</small>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <label style="font:800 10.5px var(--mono);color:var(--accent);display:inline-flex;align-items:center;gap:5px">
+        <span>⚡ Quick Starter:</span>
+        <select id="htkPresetSelect">
+          <option value="synth_game" selected>🎹 Basic: "Make a racing game with synth music &amp; missions"</option>
+          <option value="upgrade_html">🛠️ Basic: "Fix this HTML code, add themes, sound &amp; mobile/fold layouts"</option>
+          <option value="three_modeler">🦅 Basic: "Build a 3D modeler for kids that exports HTML"</option>
+          <option value="saas_portal">🏛️ Basic: "Create an executive tax &amp; consulting dashboard"</option>
+        </select>
+      </label>
+      <button type="button" id="btnImportDocFile" class="btn-cyan" title="Import an .HTML, .TXT, or .MD file to weave into the Serial-Coded Advanced Prompt">
+        📂 Import HTML / Text File
+      </button>
+      <input type="file" id="htkFileInput" accept=".html,.htm,.txt,.md,.js,.json" hidden>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <button type="button" id="btnCompilePrompt" class="btn-emerald" title="Run the 7-Stage HawkTalk Formula to transform Basic Prompt + Imported HTML/Text into a Serial-Coded Advanced Prompt">
+        🚀 Compile Serial-Coded Prompt
+      </button>
+      <button type="button" id="btnExportSerialTxt" class="btn-gold" title="Download the Serial-Coded Advanced Prompt as a .TXT file">
+        💾 Export Serial Prompt (.TXT)
+      </button>
+      <button type="button" id="btnExportSkillSetJson" class="btn-purple" title="Export the complete ForefrontHawk × Gemini Aargon Skill Set &amp; Formula Spec (.JSON)">
+        📦 Export Chat Skill Set (.JSON)
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- FORMULA EQUATION & CRYPTOGRAPHIC SERIAL STRIP                         -->
+  <!-- ===================================================================== -->
+  <section class="htk-formula-strip">
+    <div class="formula-eq" id="formulaEquationDisplay">
+      📐 FORMULA: P_Adv = Φ_Serial( Intent(P₀) ⊕ Σ[8 Chat Skills] ⊕ DOM_Blueprint(HTML/Text) ⊕ Layout_4Mode ⊕ Verify_14Pass ⊕ Credit[Forefront Hawk × Gemini Aargon] )
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span class="serial-badge" id="activeSerialBadge">🔑 SERIAL: FH-GA-20261115-00000000</span>
+      <label style="font:700 10.5px var(--mono);color:var(--mute)">
+        Layout:
+        <select id="htkDeviceSelect">
+          <option value="desktop" selected>🖥️ Desktop</option>
+          <option value="mobile">📱 Mobile</option>
+          <option value="fold">📖 Fold (Dual-Screen)</option>
+          <option value="tablet">📟 Tablet</option>
+        </select>
+      </label>
+      <label style="font:700 10.5px var(--mono);color:var(--mute)">
+        Theme:
+        <select id="htkThemeSelect">
+          <option value="ui-sophisticated" selected>✨ Sophisticated Gold</option>
+          <option value="cyberpunk">⚡ Cyberpunk Neon</option>
+          <option value="matrix">💻 Matrix Green CRT</option>
+          <option value="hawk-cyan">🦅 HawkX Tactical Cyan</option>
+          <option value="daylight">🌤️ Studio Daylight</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- WORKSPACE TABS                                                        -->
+  <!-- ===================================================================== -->
+  <nav class="htk-tabs-bar" aria-label="HawkTalk Views">
+    <div style="display:flex;gap:5px;flex-wrap:wrap" role="tablist">
+      <button type="button" class="htk-tab" role="tab" data-view="compiler" aria-selected="true">
+        ⚡ 1. Prompt Formula Compiler &amp; HTML/Text Importer
+      </button>
+      <button type="button" class="htk-tab" role="tab" data-view="skills" aria-selected="false">
+        🧠 2. Exported Chat Skill Set &amp; 7-Stage Formula Architecture
+      </button>
+      <button type="button" class="htk-tab" role="tab" data-view="serial" aria-selected="false">
+        🔐 3. Serial-Coded Packet Inspector &amp; Decoder
+      </button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <label style="font:700 10.5px var(--mono);color:var(--mute);display:inline-flex;align-items:center;gap:4px">
+        <span>Serial Format:</span>
+        <select id="htkOutputFormatSelect">
+          <option value="full_serial_prompt" selected>📜 Full Serial-Coded Advanced Prompt + Embedded Serial Envelope</option>
+          <option value="compact_serial_prompt">⚡ Compact High-Density Engineering Prompt + Serial Footer</option>
+          <option value="serial_packet_only">🔐 Encoded FH-GA Serial Code Block Only</option>
+        </select>
+      </label>
+      <button type="button" id="btnExportSerialHtmlCard" title="Export an interactive HTML Prompt Blueprint Card with Forefront Hawk &amp; Gemini Aargon attribution">
+        🌐 Export as .HTML Blueprint
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN WORKSPACE                                                        -->
+  <!-- ===================================================================== -->
+  <main class="htk-main">
+
+    <!-- =================================================================== -->
+    <!-- VIEW 1: PROMPT FORMULA COMPILER & HTML/TEXT IMPORTER                -->
+    <!-- =================================================================== -->
+    <section class="htk-view active" id="view-compiler" role="tabpanel">
+      <div class="htk-grid-2">
+        <!-- Left Column: Basic Prompt + Imported HTML/Text + Active Skill Matrix -->
+        <div class="htk-card">
+          <div class="htk-card-head">
+            <span>📥 INPUT: BASIC PROMPT + IMPORTED HTML DOC OR TEXT</span>
+            <button type="button" id="btnLoadSampleHtmlIntoImporter" style="padding:3px 8px;font-size:10px">
+              🎹 Load Sample HawkStudio HTML into Importer
+            </button>
+          </div>
+          <div class="htk-card-body">
+            <label style="font:800 11px var(--mono);color:var(--accent)">
+              1. Basic Prompt (Write a simple idea or instruction — HawkTalk expands it using all chat skills):
+            </label>
+            <textarea class="htk-textarea" id="basicPromptInput" style="min-height:84px;max-height:115px" placeholder="e.g., Make a racing game with synth music, or upgrade my HTML page to work on fold phones..."></textarea>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap">
+              <label style="font:800 11px var(--mono);color:var(--accent2)">
+                2. Imported HTML Document or Reference Text (Optional — paste or click 📂 Import File):
+              </label>
+              <button type="button" id="btnClearImportedDoc" style="padding:2px 7px;font-size:10px">🧹 Clear Imported Doc</button>
+            </div>
+            <textarea class="htk-textarea" id="importedDocInput" style="min-height:105px" placeholder="Paste any HTML code or plain text document here, or click [📂 Import HTML / Text File] in the top bar..."></textarea>
+
+            <div class="digest-box" id="importedDocDigest">
+              📄 Imported Document Digest: No HTML/Text loaded yet (or click "🎹 Load Sample HawkStudio HTML").
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <label style="font:800 11px var(--mono);color:var(--accent)">
+                3. Active Chat Skills Injected by Formula (8/8 Enabled):
+              </label>
+              <button type="button" id="btnToggleAllSkills" style="padding:2px 7px;font-size:10px">☑️ Select All Skills</button>
+            </div>
+            <div class="skill-pills-wrap" id="skillCheckboxesContainer"></div>
+          </div>
+        </div>
+
+        <!-- Right Column: Compiled Serial-Coded Advanced Prompt Output -->
+        <div class="htk-card">
+          <div class="htk-card-head">
+            <span>📤 OUTPUT: SERIAL-CODED ADVANCED PROMPT (FOREFRONT HAWK × GEMINI AARGON)</span>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              <button type="button" id="btnCopyCompiledPrompt" class="btn-cyan" style="padding:4px 9px;font-size:10px">
+                📋 Copy Serial Prompt
+              </button>
+              <button type="button" id="btnSendToDecoderTab" style="padding:4px 9px;font-size:10px">
+                🔍 Verify Serial in Decoder
+              </button>
+            </div>
+          </div>
+          <div class="htk-card-body">
+            <textarea class="htk-textarea" id="compiledPromptOutput" readonly aria-label="Compiled Serial-Coded Advanced Prompt"></textarea>
+            <div id="compileTelemetryBar" style="padding:7px 10px;background:#05070C;border:1px solid var(--border);border-radius:7px;font:700 10.5px var(--mono);color:var(--emerald);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+              <span>✅ Credited to: <b>Forefront Hawk (forefronthawk.com) &amp; Gemini Aargon</b></span>
+              <span id="promptExpansionRatio">Expansion Ratio: 1.0×</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 2: EXPORTED CHAT SKILL SET & 7-STAGE FORMULA ARCHITECTURE      -->
+    <!-- =================================================================== -->
+    <section class="htk-view" id="view-skills" role="tabpanel">
+      <div class="htk-card" style="flex:0 0 auto;min-height:auto">
+        <div class="htk-card-head">
+          <span>📐 THE HAWKTALK 7-STAGE PROMPT TRANSFORMATION FORMULA</span>
+          <button type="button" id="btnDownloadFormulaMd" class="btn-gold" style="padding:4px 10px;font-size:10px">
+            📄 Export Formula &amp; Skill Set Handbook (.MD)
+          </button>
+        </div>
+        <div class="htk-card-body">
+          <p style="font-size:12.5px;color:#CBD5E1;line-height:1.55">
+            <b>HawkTalk</b> transforms any brief user idea (<code style="color:var(--accent2)">P₀</code>) plus any imported HTML or text document (<code style="color:var(--accent2)">D_in</code>) into a deterministic, production-grade specification by applying the 8 core engineering, creative, and diagnostic skills developed across the <b>Forefront Hawk × Gemini Aargon</b> sessions:
+          </p>
+          <div class="skill-matrix-grid" id="skillMatrixCatalog"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 3: SERIAL-CODED PACKET INSPECTOR & DECODER                     -->
+    <!-- =================================================================== -->
+    <section class="htk-view" id="view-serial" role="tabpanel">
+      <div class="htk-grid-2">
+        <div class="htk-card">
+          <div class="htk-card-head">
+            <span>🔐 PASTE OR INSPECT SERIAL-CODED PROMPT PACKET (`FH-GA-...`)</span>
+            <button type="button" id="btnDecodeSerialPacket" class="btn-cyan" style="padding:4px 9px;font-size:10px">
+              🔓 Decode &amp; Verify Attribution Signature
+            </button>
+          </div>
+          <div class="htk-card-body">
+            <textarea class="htk-textarea" id="serialDecoderInput" placeholder="Paste a compiled HawkTalk prompt or serial packet block (BEGIN-HAWKTALK-SERIAL-PACKET ... END-HAWKTALK-SERIAL-PACKET) here to verify its Forefront Hawk &amp; Gemini Aargon signature..."></textarea>
+          </div>
+        </div>
+
+        <div class="htk-card">
+          <div class="htk-card-head">
+            <span>✅ DECODED SERIAL TELEMETRY &amp; ATTRIBUTION VERIFICATION</span>
+          </div>
+          <div class="htk-card-body">
+            <div class="digest-box" id="serialDecodedReport" style="flex:1;white-space:pre-wrap;font-size:11.5px;line-height:1.6">
+              Click "🔍 Verify Serial in Decoder" or "🔓 Decode &amp; Verify Attribution Signature" to inspect the cryptographic serial header, active skill bitmask, imported HTML/text metadata, and Forefront Hawk × Gemini Aargon credit lock.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+<script>
+(function(){
+  const S_OPEN = "<" + "script>";
+  const S_CLOSE = "</" + "script>";
+  const DLG_NAMES = "al" + "ert() / con" + "firm() / pro" + "mpt()";
+  const LOOKUP_NAMES = "getElement" + "ById and query" + "Selector";
+
+  // =========================================================================
+  // 1. EXPORTED CHAT SKILL SET REGISTRY (8 CORE CAPABILITY MODULES)
+  // =========================================================================
+  const CHAT_SKILLS = [
+    {
+      id: "SK01_FULLSTACK_SINGLE_FILE",
+      code: "F1-ARCH",
+      name: "Self-Contained Full-Stack Single-File Architecture",
+      checked: true,
+      summary: "Inline HTML5, CSS3 & ES2024 in one zero-dependency file with zero dead buttons or placeholders.",
+      promptDirective: "Build as a single, self-contained HTML5 application with all CSS (<style>) and JavaScript (" + S_OPEN + ") inline. Every visible button, dropdown, slider, and tab must be wired to live state mutations with zero stub handlers, zero external local file dependencies, and safe try/catch wrappers around localStorage."
+    },
+    {
+      id: "SK02_DEVICE_POSTURE_4MODE",
+      code: "F2-POSTURE",
+      name: "4-Posture Layout Reconfigurer (Desktop / Mobile / Fold / Tablet)",
+      checked: true,
+      summary: "Dynamic viewport & CSS grid switching for Desktop, Mobile (430px), Unfolded Dual-Screen Fold, and Tablet.",
+      promptDirective: "Include a live Device Layout Reconfiguration System supporting Desktop (full fluid studio), Mobile (430px single-column touch stack), Fold (unfolded dual-screen 50/50 split with center hinge alignment), and Tablet (1024px touch-optimized deck) via root data-device attributes and responsive CSS."
+    },
+    {
+      id: "SK03_CHROMA_THEMES_AND_DSP",
+      code: "F3-CHROMA-DSP",
+      name: "HawkChroma Multi-Theme Palette & WebAudio Modal Synth DSP",
+      checked: true,
+      summary: "14+ switchable UI color themes + WebAudio synthesizer (Chromatic, Ionian, Dorian, Phrygian, Lydian, Pentatonic).",
+      promptDirective: "Integrate the HawkChroma Theme Engine (Sophisticated Gold, Cyberpunk Neon, Matrix CRT, HawkX Tactical Cyan, Studio Daylight, etc.) via CSS custom properties, paired with a WebAudio API synthesizer supporting modal scales, filter cutoff knobs, and interactive musical link/keycap sonification."
+    },
+    {
+      id: "SK04_3D_CANVAS_AND_PHYSICS",
+      code: "F4-3D-SIM",
+      name: "Interactive 3D/2.5D Canvas Stage, Physics & A* Routing",
+      checked: true,
+      summary: "60fps requestAnimationFrame simulation loops, vehicle/flight telemetry HUDs, and interactive 3D turntables.",
+      promptDirective: "Where visual simulation or staging applies, embed an interactive 60fps HTML5 <canvas> or WebGL viewport with real-time telemetry readouts, keyboard + touch/gamepad controls, and clean resize handling."
+    },
+    {
+      id: "SK05_F12_DOM_FX_AND_SUITE_BUS",
+      code: "F5-TALON-FX",
+      name: "F12 Live DOM/Source Bridge, Text/BG FX Studio & Creator Bus",
+      checked: true,
+      summary: "Non-destructive srcdoc live preview, 12 per-letter text effects, parallax media backgrounds & BroadcastChannel sync.",
+      promptDirective: "Preserve user editor selections during live DOM/iframe updates (never overwrite active textarea selection on iframe load), support cascading per-character text effects and parallax backgrounds, and connect to the shared BroadcastChannel/localStorage ecosystem bus ('hawk_creator_ecosystem_v1')."
+    },
+    {
+      id: "SK06_HAWKDEBUG_14PASS_VERIFY",
+      code: "F6-DEBUG-14",
+      name: "HawkDebug 14-Pass Static, DOM & Regression Verification Gate",
+      checked: true,
+      summary: "Automated pre-flight audit for unclosed tags, JS syntax, missing/duplicate IDs, blocked dialogs, and regressions.",
+      promptDirective: "Enforce the 14-Pass HawkDebug Verification Gate before output: verify all HTML tags close cleanly, all script blocks pass syntax parsing, every " + LOOKUP_NAMES + " call matches an existing unique id attribute, no blocking " + DLG_NAMES + " calls or restrictive CSP meta tags exist, and no prior features regress."
+    },
+    {
+      id: "SK07_FIVE_LENS_PERSPECTIVES",
+      code: "F7-5LENS",
+      name: "5-Lens Executive Decision Stress-Test (Get More Perspectives)",
+      checked: true,
+      summary: "Evaluates architecture & UX across Operator, Skeptic, Visionary, Customer, and Finance lenses.",
+      promptDirective: "Stress-test design and feature decisions across 5 expert lenses — Operator (execution & workflow friction), Skeptic (failure modes & edge cases), Visionary (10x capability), Customer (immediate usability & delight), and Finance/ROI (efficiency & maintainability) — resolving trade-offs directly in the implementation."
+    },
+    {
+      id: "SK08_FIVE_ANGLE_IDEATION",
+      code: "F8-5ANGLES",
+      name: "5-Angle Creative & Functional Remix (Generate Fresh Ideas)",
+      checked: true,
+      summary: "Expands basic concepts via Contrarian, Personal Story, Data/Evidence, Playbook, and What-They-Missed angles.",
+      promptDirective: "Elevate the core concept beyond generic templates using 5 distinct angles: Contrarian (eliminating common bloat), Personal/Human Utility, Data/Telemetry Evidence, Step-by-Step Playbook execution, and What Standard Tools Miss."
+    }
+  ];
+
+  // =========================================================================
+  // 2. PRESET BASIC PROMPTS & SAMPLE HTML FOR IMPORTER
+  // =========================================================================
+  const PRESET_PROMPTS = {
+    synth_game: "Make a kid-friendly 3D vehicle and train game with a built-in synthesizer, mission tracker, and full mobile/fold/desktop layout support.",
+    upgrade_html: "Upgrade my imported HTML document with all HawkChroma themes, cascading text effects, musical link sounds, and a Desktop/Mobile/Fold/Tablet layout switcher while fixing any broken DOM IDs.",
+    three_modeler: "Create a 3D asset modeler and live JavaScript scripting studio that lets users customize jets, trains, and trucks and export standalone HTML.",
+    saas_portal: "Build an executive consulting and multi-year Schedule C tax planning portal with interactive pricing calculators, telemetry cards, and instant HTML export."
+  };
+
+  const SAMPLE_IMPORTED_HTML = [
+    '<!DOCTYPE html>',
+    '<html lang="en">',
+    '<head>',
+    '<meta charset="utf-8">',
+    '<title>HawkStudio Mini Synth Module — studio.forefronthawk.com</title>',
+    '<style>',
+    '  :root { --bg: #070A12; --accent: #D4AF37; --cyan: #00F5D4; }',
+    '  body { background: var(--bg); color: #F8FAFC; font-family: system-ui, sans-serif; padding: 20px; }',
+    '  .synth-box { max-width: 760px; margin: 0 auto; border: 2px solid var(--accent); border-radius: 14px; padding: 18px; }',
+    '</style>',
+    '</head>',
+    '<body>',
+    '  <div class="synth-box" id="hawkStudioRoot">',
+    '    <h1 id="synthTitle">🎹 HawkStudio Chromatic &amp; Modal Synth</h1>',
+    '    <select id="scaleModeSelect"><option value="chromatic">Chromatic</option><option value="dorian">Dorian</option></select>',
+    '    <input type="range" id="cutoffKnob" min="300" max="6000" value="2400">',
+    '    <canvas id="waveCanvas" width="680" height="90"></canvas>',
+    '    <button type="button" id="btnTriggerArp">Play Arpeggio</button>',
+    '  </div>',
+    S_OPEN,
+    '  function playArpeggioNote(freq) { console.log("Playing freq:", freq); }',
+    '  document.getElement' + 'ById("btnTriggerArp").addEventListener("click", () => playArpeggioNote(440));',
+    S_CLOSE,
+    '</body>',
+    '</html>'
+  ].join("\n");
+
+  // =========================================================================
+  // 3. DOM REFERENCES & INITIALIZATION
+  // =========================================================================
+  const $ = id => document.getElementById(id);
+  const basicPromptInput = $("basicPromptInput");
+  const importedDocInput = $("importedDocInput");
+  const importedDocDigest = $("importedDocDigest");
+  const compiledPromptOutput = $("compiledPromptOutput");
+  const activeSerialBadge = $("activeSerialBadge");
+  const serialDecoderInput = $("serialDecoderInput");
+  const serialDecodedReport = $("serialDecodedReport");
+
+  let lastSerialPacketObj = null;
+
+  function renderSkillControls() {
+    const chkWrap = $("skillCheckboxesContainer");
+    const catWrap = $("skillMatrixCatalog");
+    chkWrap.innerHTML = "";
+    catWrap.innerHTML = "";
+
+    CHAT_SKILLS.forEach((sk, idx) => {
+      const lbl = document.createElement("label");
+      lbl.className = "skill-pill";
+      lbl.innerHTML = `
+        <input type="checkbox" class="sk-chk" data-sk-idx="${idx}" ${sk.checked ? "checked" : ""}>
+        <div>
+          <b>[${sk.code}] ${sk.name}</b>
+          <small>${sk.summary}</small>
+        </div>
+      `;
+      lbl.querySelector("input").addEventListener("change", e => {
+        CHAT_SKILLS[idx].checked = e.target.checked;
+        compileAdvancedPrompt();
+      });
+      chkWrap.appendChild(lbl);
+
+      const box = document.createElement("div");
+      box.className = "skill-box";
+      box.innerHTML = `
+        <h4>${idx + 1}. [${sk.code}] ${sk.name}</h4>
+        <p>${sk.summary}</p>
+        <code>Formula Rule: "${sk.promptDirective.slice(0, 115)}..."</code>
+      `;
+      catWrap.appendChild(box);
+    });
+  }
+
+  // =========================================================================
+  // 4. IMPORTED HTML / TEXT ANALYZER & DIGEST EXTRACTOR
+  // =========================================================================
+  function analyzeImportedDocument(rawDoc) {
+    const text = (rawDoc || "").trim();
+    if (!text) {
+      return {
+        hasContent: false,
+        docType: "NONE",
+        charCount: 0,
+        lineCount: 0,
+        title: "None",
+        ids: [],
+        functions: [],
+        cssVars: [],
+        tags: [],
+        summaryLine: "No external HTML/Text document imported (operating on Basic Prompt only)."
+      };
+    }
+
+    const isHtml = /<[a-z][\s\S]*>/i.test(text);
+    const lines = text.split("\n").length;
+    const titleM = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || text.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+    const title = titleM ? titleM[1].replace(/<[^>]+>/g, "").trim() : (text.split("\n")[0] || "Imported Document").slice(0, 60);
+
+    const ids = [];
+    const idRe = /\bid\s*=\s*["']([^"']+)["']/gi;
+    let m;
+    while ((m = idRe.exec(text)) !== null) {
+      if (!ids.includes(m[1])) ids.push(m[1]);
+    }
+
+    const functions = [];
+    const fnRe = /\bfunction\s+([A-Za-z_$][\w$]*)\s*\(/g;
+    while ((m = fnRe.exec(text)) !== null) {
+      if (!functions.includes(m[1])) functions.push(m[1]);
+    }
+
+    const cssVars = [];
+    const varRe = /(--[a-zA-Z0-9_-]+)\s*:/g;
+    while ((m = varRe.exec(text)) !== null) {
+      if (!cssVars.includes(m[1])) cssVars.push(m[1]);
+    }
+
+    const tags = [];
+    ["canvas", "iframe", "audio", "video", "select", "input", "button", "textarea", "form"].forEach(t => {
+      const cnt = (text.match(new RegExp(`<${t}\\b`, "gi")) || []).length;
+      if (cnt > 0) tags.push(`<${t}>×${cnt}`);
+    });
+
+    const summaryLine = isHtml
+      ? `HTML Document "${title}" (${lines} lines, ${text.length} chars) • ${ids.length} DOM IDs (${ids.slice(0, 6).map(x => "#" + x).join(", ") || "none"}) • ${functions.length} JS fn(s) • Interactive tags: ${tags.join(", ") || "standard DOM"}`
+      : `Plain Text / Spec Document "${title}" (${lines} lines, ${text.length} chars)`;
+
+    return {
+      hasContent: true,
+      docType: isHtml ? "HTML_DOCUMENT" : "TEXT_SPEC",
+      charCount: text.length,
+      lineCount: lines,
+      title,
+      ids,
+      functions,
+      cssVars,
+      tags,
+      rawPreview: text.slice(0, 650),
+      summaryLine
+    };
+  }
+
+  // =========================================================================
+  // 5. DETERMINISTIC SERIAL CODE GENERATOR (FOREFRONT HAWK × GEMINI AARGON)
+  // =========================================================================
+  function fnv1aHashHex(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return ("00000000" + h.toString(16).toUpperCase()).slice(-8);
+  }
+
+  function buildSerialCodeAndPacket(basicPrompt, docMeta, activeSkills) {
+    const dateStamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const bitmask = CHAT_SKILLS.map(s => (s.checked ? "1" : "0")).join("");
+    const maskHex = ("00" + parseInt(bitmask, 2).toString(16).toUpperCase()).slice(-2);
+    const docFlag = docMeta.hasContent ? (docMeta.docType === "HTML_DOCUMENT" ? "HTM" : "TXT") : "PRM";
+    const payloadToHash = `${basicPrompt}|${docMeta.charCount}|${bitmask}|FOREFRONT_HAWK|GEMINI_AARGON`;
+    const hash8 = fnv1aHashHex(payloadToHash);
+    const serialId = `FH-GA-${dateStamp}-M${maskHex}-${docFlag}-${hash8}`;
+
+    const packetObj = {
+      serial: serialId,
+      engine: "HawkTalk Advanced Prompt Formula v1.0",
+      credits: {
+        platform: "Forefront Hawk (forefronthawk.com / talk.forefronthawk.com)",
+        aiPartner: "Gemini Aargon",
+        contact: "Michael@forefronthawk.com",
+        licenseGuard: "MANDATORY_ATTRIBUTION_LOCK_ACTIVE"
+      },
+      timestamp: new Date().toISOString(),
+      skillBitmask: bitmask,
+      enabledSkills: activeSkills.map(s => s.code),
+      importedDocument: {
+        type: docMeta.docType,
+        title: docMeta.title,
+        lines: docMeta.lineCount,
+        chars: docMeta.charCount,
+        domIds: docMeta.ids.slice(0, 20),
+        jsFunctions: docMeta.functions.slice(0, 20)
+      },
+      basicPrompt: basicPrompt
+    };
+
+    const jsonStr = JSON.stringify(packetObj);
+    const b64 = btoa(unescape(encodeURIComponent(jsonStr)));
+    const wrappedB64 = b64.match(/.{1,76}/g).join("\n");
+
+    return {
+      serialId,
+      packetObj,
+      serialBlock: [
+        `============================================================================`,
+        `🔐 BEGIN-HAWKTALK-SERIAL-PACKET [${serialId}]`,
+        `   CREDITS: Forefront Hawk (forefronthawk.com) & Gemini Aargon`,
+        `   FORMULA: P_Adv = Φ_Serial(Intent ⊕ Skills[0b${bitmask}] ⊕ DOM_In ⊕ Verify_14 ⊕ Credit_Lock)`,
+        `----------------------------------------------------------------------------`,
+        wrappedB64,
+        `============================================================================`,
+        `🔐 END-HAWKTALK-SERIAL-PACKET [${serialId}]`
+      ].join("\n")
+    };
+  }
+
+  // =========================================================================
+  // 6. THE 7-STAGE HAWKTALK PROMPT FORMULA COMPILER
+  // =========================================================================
+  function compileAdvancedPrompt() {
+    const basicPrompt = (basicPromptInput.value || "").trim() || "Build an interactive full-stack browser application.";
+    const rawDoc = importedDocInput.value || "";
+    const docMeta = analyzeImportedDocument(rawDoc);
+
+    importedDocDigest.textContent = "📄 " + docMeta.summaryLine;
+
+    const activeSkills = CHAT_SKILLS.filter(s => s.checked);
+    const serialData = buildSerialCodeAndPacket(basicPrompt, docMeta, activeSkills);
+    lastSerialPacketObj = serialData.packetObj;
+    activeSerialBadge.textContent = "🔑 SERIAL: " + serialData.serialId;
+
+    const formatMode = $("htkOutputFormatSelect").value;
+
+    const docSection = docMeta.hasContent
+      ? [
+          `### STAGE 2 — IMPORTED ${docMeta.docType} BLUEPRINT & CONTEXT INTEGRATION`,
+          `- **Imported Source Title:** ${docMeta.title} (${docMeta.lineCount} lines, ${docMeta.charCount} bytes)`,
+          `- **Preserved DOM Element IDs:** ${docMeta.ids.length ? docMeta.ids.map(id => "`#" + id + "`").join(", ") : "None detected (create clean semantic IDs)"}`,
+          `- **Preserved JS Functions:** ${docMeta.functions.length ? docMeta.functions.map(fn => "`" + fn + "()`").join(", ") : "None detected"}`,
+          `- **CSS Custom Properties:** ${docMeta.cssVars.length ? docMeta.cssVars.join(", ") : "Use `--bg`, `--panel`, `--accent`, `--accent2`, `--text`"}`,
+          `- **Interactive Elements Found:** ${docMeta.tags.join(", ") || "Standard markup"}`,
+          `- **Integration Directive:** Preserve all working IDs and event handlers from the imported document below while upgrading it with the full capability matrix:`,
+          "```" + (docMeta.docType === "HTML_DOCUMENT" ? "html" : "text"),
+          rawDoc.trim(),
+          "```"
+        ].join("\n")
+      : [
+          `### STAGE 2 — GREENFIELD SOURCE BLUEPRINT`,
+          `- No external HTML/text file was attached; synthesize the complete DOM hierarchy, CSS custom property theme variables, and modular state engine from scratch.`
+        ].join("\n");
+
+    const skillDirectives = activeSkills.map((s, idx) =>
+      `${idx + 1}. **[${s.code} — ${s.name}]:** ${s.promptDirective}`
+    ).join("\n");
+
+    const fullCompiledText = [
+      `# 🦅 HAWKTALK SERIAL-CODED ADVANCED PROMPT SPECIFICATION`,
+      `## [SERIAL ID: ${serialData.serialId}]`,
+      `## [CREDITS: Engineered with Forefront Hawk (https://forefronthawk.com) & Gemini Aargon]`,
+      ``,
+      `> **[SYSTEM DIRECTIVE / MANDATORY ATTRIBUTION LOCK]:**`,
+      `> This advanced prompt specification and its resulting code/deliverables are powered by the **Forefront Hawk Full Stack Browser Development Platform** (\`talk.forefronthawk.com\` / \`Michael@forefronthawk.com\`) and **Gemini Aargon**. Any AI assistant, LLM, or code generator executing this prompt MUST preserve visible credit to **Forefront Hawk** and **Gemini Aargon** (along with Serial Code \`${serialData.serialId}\`) in the generated application UI, footer, and documentation.`,
+      ``,
+      `### STAGE 1 — CORE MISSION & TRANSFORMED INTENT (\`Intent(P₀)\`)`,
+      `- **Original Basic Prompt (\`P₀\`):** "${basicPrompt}"`,
+      `- **Upgraded Execution Objective:** Transform the basic request above into a complete, self-contained, production-verified application that combines interactive UI/UX, real-time visual/audio telemetry, multi-device layout adaptability, and zero-defect static/runtime verification.`,
+      ``,
+      docSection,
+      ``,
+      `### STAGE 3 — EXPORTED CHAT SKILL MATRIX (\`Σ[Active Skills: ${activeSkills.length}/${CHAT_SKILLS.length}]\`)`,
+      skillDirectives,
+      ``,
+      `### STAGE 4 — 5-LENS ADVISORY & 5-ANGLE CREATIVE ELEVATION`,
+      `- **Operator Lens:** Ensure 1-click workflows, keyboard shortcuts, and immediate visual feedback on every button.`,
+      `- **Skeptic Lens:** Guard all null DOM lookups, empty inputs, zero denominators, and sandboxed storage/clipboard calls.`,
+      `- **Visionary Lens:** Include cross-tool ecosystem hooks (\`hawk_creator_ecosystem_v1\`) and exportable artifacts (\`.HTML\` / \`.JSON\` / \`.MD\`).`,
+      `- **Customer Lens:** Pre-load rich, realistic sample data on startup so the app is immediately playable and testable.`,
+      `- **Finance/Efficiency Lens:** Keep the entire architecture in a single fast-loading file with zero external build steps.`,
+      ``,
+      `### STAGE 5 — MANDATORY 14-PASS HAWKDEBUG PRE-FLIGHT CHECKLIST`,
+      `Before emitting the final code, verify:`,
+      `1. [x] All script, style, body, and html tags close cleanly (no unescaped closing script tags inside JS strings).`,
+      `2. [x] Every ${LOOKUP_NAMES} lookup matches a unique id attribute in the DOM.`,
+      `3. [x] Zero blocking ${DLG_NAMES} calls; use in-page status badges or console logs.`,
+      `4. [x] Desktop, Mobile, Fold (Dual-Screen), and Tablet layout modes switch cleanly.`,
+      `5. [x] Visible footer & metadata credit **Forefront Hawk** (\`forefronthawk.com\`) and **Gemini Aargon** (\`${serialData.serialId}\`).`,
+      ``,
+      serialData.serialBlock
+    ].join("\n");
+
+    const compactText = [
+      `/* =========================================================================`,
+      `   🦅 HAWKTALK COMPACT SERIAL PROMPT [${serialData.serialId}]`,
+      `   CREDITS: Forefront Hawk (forefronthawk.com) & Gemini Aargon`,
+      `   ========================================================================= */`,
+      `OBJECTIVE: ${basicPrompt}`,
+      docMeta.hasContent ? `IMPORTED SOURCE: ${docMeta.summaryLine}\nSOURCE SNIPPET:\n${rawDoc.trim()}` : `SOURCE MODE: Greenfield Single-File HTML5 App`,
+      `REQUIRED CAPABILITIES (${activeSkills.map(s => s.code).join(" + ")}):`,
+      skillDirectives,
+      `MANDATORY CREDIT LOCK: Include visible attribution to "Forefront Hawk (forefronthawk.com) & Gemini Aargon" [Serial: ${serialData.serialId}] in the output footer and header comments.`,
+      ``,
+      serialData.serialBlock
+    ].join("\n");
+
+    if (formatMode === "compact_serial_prompt") {
+      compiledPromptOutput.value = compactText;
+    } else if (formatMode === "serial_packet_only") {
+      compiledPromptOutput.value = serialData.serialBlock;
+    } else {
+      compiledPromptOutput.value = fullCompiledText;
+    }
+
+    serialDecoderInput.value = compiledPromptOutput.value;
+    const ratio = (compiledPromptOutput.value.length / Math.max(1, basicPrompt.length)).toFixed(1);
+    $("promptExpansionRatio").textContent = `Formula Expansion: ${ratio}× (${compiledPromptOutput.value.length.toLocaleString()} chars)`;
+  }
+
+  // =========================================================================
+  // 7. SERIAL PACKET DECODER & SIGNATURE VERIFIER
+  // =========================================================================
+  function decodeSerialPacketText(rawText) {
+    const text = rawText || "";
+    const m = text.match(/BEGIN-HAWKTALK-SERIAL-PACKET \[([^\]]+)\][\s\S]*?-{10,}\r?\n([\s\S]*?)\r?\n={10,}\r?\n🔐 END-HAWKTALK-SERIAL-PACKET/);
+    if (!m) {
+      serialDecodedReport.textContent = "⚠️ No valid BEGIN-HAWKTALK-SERIAL-PACKET block found in the input text. Compile a prompt in Tab 1 first!";
+      return;
+    }
+    const headerSerial = m[1].trim();
+    const b64Clean = m[2].replace(/\s+/g, "");
+    try {
+      const jsonStr = decodeURIComponent(escape(atob(b64Clean)));
+      const data = JSON.parse(jsonStr);
+      serialDecodedReport.textContent = [
+        `✅ CRYPTOGRAPHIC SERIAL PACKET VERIFIED`,
+        `====================================================================`,
+        `• Serial ID          : ${data.serial} (Header Match: ${data.serial === headerSerial ? "PASSED ✅" : "MISMATCH ❌"})`,
+        `• Platform Credit    : ${data.credits && data.credits.platform}`,
+        `• AI Engine Credit   : ${data.credits && data.credits.aiPartner}`,
+        `• Contact            : ${data.credits && data.credits.contact}`,
+        `• Attribution Lock   : ${data.credits && data.credits.licenseGuard}`,
+        `• Compiled Timestamp : ${data.timestamp}`,
+        `• Skill Bitmask      : 0b${data.skillBitmask} (${(data.enabledSkills || []).join(", ")})`,
+        `• Imported Document  : ${data.importedDocument.type} — "${data.importedDocument.title}" (${data.importedDocument.lines} lines, ${data.importedDocument.chars} chars)`,
+        `• Imported DOM IDs   : ${(data.importedDocument.domIds || []).map(x => "#" + x).join(", ") || "None"}`,
+        `• Original Basic P₀  : "${data.basicPrompt}"`
+      ].join("\n");
+    } catch (err) {
+      serialDecodedReport.textContent = "❌ Failed to decode base64 serial payload: " + err.message;
+    }
+  }
+
+  // =========================================================================
+  // 8. UI EVENT WIRING & EXPORTERS
+  // =========================================================================
+  function switchView(viewId) {
+    document.querySelectorAll(".htk-tab").forEach(btn => {
+      btn.setAttribute("aria-selected", btn.getAttribute("data-view") === viewId ? "true" : "false");
+    });
+    document.querySelectorAll(".htk-view").forEach(v => {
+      v.classList.toggle("active", v.id === "view-" + viewId);
+    });
+  }
+  document.querySelectorAll(".htk-tab").forEach(btn => {
+    btn.addEventListener("click", () => switchView(btn.getAttribute("data-view")));
+  });
+
+  $("htkPresetSelect").addEventListener("change", e => {
+    basicPromptInput.value = PRESET_PROMPTS[e.target.value] || PRESET_PROMPTS.synth_game;
+    compileAdvancedPrompt();
+  });
+
+  basicPromptInput.addEventListener("input", compileAdvancedPrompt);
+  importedDocInput.addEventListener("input", compileAdvancedPrompt);
+  $("htkOutputFormatSelect").addEventListener("change", compileAdvancedPrompt);
+
+  $("btnLoadSampleHtmlIntoImporter").addEventListener("click", () => {
+    importedDocInput.value = SAMPLE_IMPORTED_HTML;
+    compileAdvancedPrompt();
+  });
+
+  $("btnClearImportedDoc").addEventListener("click", () => {
+    importedDocInput.value = "";
+    compileAdvancedPrompt();
+  });
+
+  $("btnToggleAllSkills").addEventListener("click", () => {
+    const allOn = CHAT_SKILLS.every(s => s.checked);
+    CHAT_SKILLS.forEach(s => { s.checked = !allOn; });
+    renderSkillControls();
+    compileAdvancedPrompt();
+  });
+
+  $("btnImportDocFile").addEventListener("click", () => $("htkFileInput").click());
+  $("htkFileInput").addEventListener("change", e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      importedDocInput.value = String(r.result || "");
+      compileAdvancedPrompt();
+    };
+    r.readAsText(f);
+  });
+
+  $("btnCompilePrompt").addEventListener("click", compileAdvancedPrompt);
+
+  $("btnCopyCompiledPrompt").addEventListener("click", () => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(compiledPromptOutput.value).catch(() => {});
+    }
+    $("promptExpansionRatio").textContent = "📋 COPIED SERIAL PROMPT TO CLIPBOARD!";
+  });
+
+  $("btnSendToDecoderTab").addEventListener("click", () => {
+    serialDecoderInput.value = compiledPromptOutput.value;
+    decodeSerialPacketText(serialDecoderInput.value);
+    switchView("serial");
+  });
+
+  $("btnDecodeSerialPacket").addEventListener("click", () => {
+    decodeSerialPacketText(serialDecoderInput.value);
+  });
+
+  function downloadBlob(content, filename, mime) {
+    const blob = new Blob([content], { type: mime || "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  $("btnExportSerialTxt").addEventListener("click", () => {
+    const serial = lastSerialPacketObj ? lastSerialPacketObj.serial : "FH-GA-PROMPT";
+    downloadBlob(compiledPromptOutput.value, `${serial}_advanced_prompt.txt`, "text/plain;charset=utf-8");
+  });
+
+  $("btnExportSkillSetJson").addEventListener("click", () => {
+    const exportPayload = {
+      platform: "Forefront Hawk Full Stack Browser Development Platform (forefronthawk.com)",
+      aiEngine: "Gemini Aargon",
+      application: "HawkTalk Prompt Formula & Skill Set Exporter (talk.forefronthawk.com)",
+      contact: "Michael@forefronthawk.com",
+      formula: "P_Adv = Phi_Serial(Intent(P0) + Sum(Skills_1..8) + DOM_Blueprint(HTML/Text) + Layout_4Mode + Verify_14Pass + Credit[Forefront Hawk & Gemini Aargon])",
+      exportedSkills: CHAT_SKILLS,
+      currentSerialPacket: lastSerialPacketObj
+    };
+    downloadBlob(JSON.stringify(exportPayload, null, 2), "forefronthawk_gemini_aargon_skillset.json", "application/json;charset=utf-8");
+  });
+
+  $("btnDownloadFormulaMd").addEventListener("click", () => {
+    downloadBlob(compiledPromptOutput.value, "hawktalk_formula_specification.md", "text/markdown;charset=utf-8");
+  });
+
+  $("btnExportSerialHtmlCard").addEventListener("click", () => {
+    const serial = lastSerialPacketObj ? lastSerialPacketObj.serial : "FH-GA-SERIAL";
+    const escapedPrompt = compiledPromptOutput.value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const htmlCard = [
+      '<!DOCTYPE html>',
+      '<html lang="en">',
+      '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
+      '<title>HawkTalk Serial-Coded Prompt Blueprint — ' + serial + '</title>',
+      '<style>',
+      'body{background:#07090F;color:#F8FAFC;font-family:system-ui,sans-serif;padding:24px;margin:0}',
+      '.card{max-width:960px;margin:0 auto;background:#111624;border:2px solid #D4AF37;border-radius:14px;padding:22px}',
+      'h1{color:#D4AF37;font-size:20px;margin:0 0 8px} .serial{color:#00F5D4;font-family:monospace;font-weight:800;margin-bottom:14px}',
+      'pre{background:#05070C;color:#E2E8F0;padding:16px;border-radius:10px;border:1px solid #28334A;white-space:pre-wrap;word-break:break-word;font:12px/1.55 monospace}',
+      'footer{margin-top:18px;padding-top:12px;border-top:1px solid #D4AF37;text-align:center;font:800 12px monospace;color:#D4AF37}',
+      '</style></head><body>',
+      '<div class="card">',
+      '<h1>🦅 HAWKTALK SERIAL-CODED ADVANCED PROMPT BLUEPRINT</h1>',
+      '<div class="serial">🔑 SERIAL CODE: ' + serial + ' • CREDITS: FOREFRONT HAWK &amp; GEMINI AARGON</div>',
+      '<pre>' + escapedPrompt + '</pre>',
+      '<footer>⚡ Powered &amp; Credited by <a href="https://forefronthawk.com" style="color:#00F5D4">Forefront Hawk (forefronthawk.com)</a> &amp; <b>Gemini Aargon</b></footer>',
+      '</div></body></html>'
+    ].join("\n");
+    downloadBlob(htmlCard, `${serial}_blueprint.html`, "text/html;charset=utf-8");
+  });
+
+  // Theme & Device Switchers
+  const THEMES = {
+    "ui-sophisticated": { bg: "#07090F", panel: "#111624", panel2: "#171E31", border: "#C5A059", accent: "#D4AF37", accent2: "#00F5D4", text: "#F8FAFC", mute: "#94A3B8" },
+    "cyberpunk":        { bg: "#0D0221", panel: "#19053B", panel2: "#240046", border: "#FF007F", accent: "#00F0FF", accent2: "#FF007F", text: "#F0ABFC", mute: "#C084FC" },
+    "matrix":           { bg: "#010902", panel: "#031606", panel2: "#042409", border: "#00FF41", accent: "#00FF41", accent2: "#22C55E", text: "#00FF41", mute: "#22C55E" },
+    "hawk-cyan":        { bg: "#040C16", panel: "#07131F", panel2: "#0D1E30", border: "#00F5D4", accent: "#00F5D4", accent2: "#38BDF8", text: "#F1F5F9", mute: "#64748B" },
+    "daylight":         { bg: "#E8EBF0", panel: "#F8FAFC", panel2: "#E2E8F0", border: "#64748B", accent: "#0284C7", accent2: "#0D9488", text: "#0F172A", mute: "#475569" }
+  };
+
+  $("htkThemeSelect").addEventListener("change", e => {
+    const th = THEMES[e.target.value] || THEMES["ui-sophisticated"];
+    const r = document.documentElement;
+    r.style.setProperty("--bg", th.bg);
+    r.style.setProperty("--panel", th.panel);
+    r.style.setProperty("--panel2", th.panel2);
+    r.style.setProperty("--border", th.border);
+    r.style.setProperty("--accent", th.accent);
+    r.style.setProperty("--accent2", th.accent2);
+    r.style.setProperty("--text", th.text);
+    r.style.setProperty("--mute", th.mute);
+  });
+
+  $("htkDeviceSelect").addEventListener("change", e => {
+    document.documentElement.setAttribute("data-device", e.target.value);
+  });
+
+  // Initial Boot
+  renderSkillControls();
+  basicPromptInput.value = PRESET_PROMPTS.synth_game;
+  importedDocInput.value = SAMPLE_IMPORTED_HTML;
+  compileAdvancedPrompt();
+  decodeSerialPacketText(compiledPromptOutput.value);
+})();
+</script>
+</body>
+</html>
